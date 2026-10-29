@@ -101,6 +101,53 @@ def _remote(flag: Any, *texts: Any) -> bool:
     return any(isinstance(t, str) and REMOTE_RE.search(t) for t in texts)
 
 
+# ---------------- enrichment (title -> seniority, flags -> work model) ----------------
+
+SENIORITY_LEVELS = ["intern", "entry", "mid", "senior", "lead", "manager", "director", "executive"]
+_SEN_RULES: list[tuple[str, re.Pattern[str]]] = [
+    ("intern", re.compile(r"\b(intern(ship)?|co-?op|apprentice(ship)?|trainee|working student|werkstudent|stagiaire|praktikum)\b", re.I)),
+    ("executive", re.compile(r"\b(chief|c[etfom]o|cro|cpo|ciso|president|vp|svp|evp|vice[- ]president|general manager|managing director|founder)\b", re.I)),
+    ("director", re.compile(r"\b(director|head of|head,)\b", re.I)),
+    ("lead", re.compile(r"\b(lead|principal|staff(?! accountant| nurse| assistant)|architect|distinguished)\b", re.I)),
+    # "Product/Account/Program/Project Manager" are usually individual-contributor roles, not people managers.
+    ("manager", re.compile(r"\b(?<!product )(?<!account )(?<!program )(?<!project )(?<!success )(?<!marketing )manager\b|\bmgr\b|\bsupervisor\b", re.I)),
+    ("senior", re.compile(r"\b(senior|sr\.?|snr|iii|iv)(?=\W|$)", re.I)),
+    ("entry", re.compile(r"\b(junior|jr\.?|entry[- ]level|graduate|new grad|associate|assistant)(?=\W|$)|\b(i|1)$", re.I)),
+]
+
+
+def seniority(title: str | None) -> str | None:
+    """Rule-based seniority from the job title. One of SENIORITY_LEVELS, or None for an empty title."""
+    t = (title or "").strip()
+    if not t:
+        return None
+    for level, pat in _SEN_RULES:
+        if pat.search(t):
+            return level
+    return "mid"
+
+
+HYBRID_RE = re.compile(r"\bhybrid\b", re.I)
+ONSITE_RE = re.compile(r"\b(on-?site|in[- ]office|in[- ]person)\b", re.I)
+
+
+def work_model(workplace_type: Any, remote: bool, *texts: Any) -> str | None:
+    """Normalize to 'remote' | 'hybrid' | 'onsite', or None when the board doesn't say."""
+    w = re.sub(r"[^a-z]", "", str(workplace_type or "").lower())
+    if w in ("remote", "hybrid"):
+        return w
+    if w in ("onsite", "inoffice", "office"):
+        return "onsite"
+    blob = " ".join(t for t in texts if isinstance(t, str))
+    if HYBRID_RE.search(blob):
+        return "hybrid"
+    if remote or REMOTE_RE.search(blob):
+        return "remote"
+    if ONSITE_RE.search(blob):
+        return "onsite"
+    return None
+
+
 def _job(**kw: Any) -> dict[str, Any]:
     base = dict(
         ats=None, company_slug=None, company_name=None, job_id=None, title=None, department=None,
@@ -109,6 +156,8 @@ def _job(**kw: Any) -> dict[str, Any]:
         salary_min=None, salary_max=None, salary_currency=None, salary_text=None, description=None,
     )
     base.update(kw)
+    base["seniority"] = seniority(base.get("title"))
+    base["work_model"] = work_model(base.get("workplace_type"), bool(base.get("remote")), base.get("location"), base.get("title"))
     return base
 
 
@@ -332,7 +381,8 @@ def _any_kw(text: str, kws: Iterable[str]) -> bool:
 
 
 def filter_jobs(jobs: list[dict], keywords=None, exclude=None, locations=None, departments=None,
-                remote_only=False, posted_within_days=None, now: datetime | None = None) -> list[dict]:
+                remote_only=False, posted_within_days=None, now: datetime | None = None,
+                seniority_levels=None, work_models=None) -> list[dict]:
     now = now or datetime.now(timezone.utc)
     out = []
     for j in jobs:
@@ -348,6 +398,10 @@ def filter_jobs(jobs: list[dict], keywords=None, exclude=None, locations=None, d
             continue
         if remote_only and not j.get("remote"):
             continue
+        if seniority_levels and j.get("seniority") not in {x.lower() for x in seniority_levels}:
+            continue
+        if work_models and j.get("work_model") not in {x.lower().replace("-", "") for x in work_models}:
+            continue
         if posted_within_days:
             p = j.get("posted_at")
             try:
@@ -360,7 +414,7 @@ def filter_jobs(jobs: list[dict], keywords=None, exclude=None, locations=None, d
 
 
 def summarize(ats: str, slug: str, name: str, all_jobs: list[dict], matched: list[dict], new_ids: set | None,
-              now: datetime | None = None) -> dict:
+              now: datetime | None = None, closed_ids: set | None = None) -> dict:
     now = now or datetime.now(timezone.utc)
 
     def age_days(j):
@@ -384,7 +438,12 @@ def summarize(ats: str, slug: str, name: str, all_jobs: list[dict], matched: lis
         "type": "company_summary", "ats": ats, "company_slug": slug, "company_name": name,
         "total_open_jobs": total, "matched_jobs": len(matched),
         "new_jobs_since_last_run": (len(new_ids) if new_ids is not None else None),
+        "closed_jobs_since_last_run": (len(closed_ids) if closed_ids is not None else None),
+        "closed_job_ids": (sorted(closed_ids)[:50] if closed_ids is not None else None),
+        "net_change_since_last_run": (len(new_ids) - len(closed_ids) if new_ids is not None and closed_ids is not None else None),
         "posted_last_7_days": last7, "posted_last_30_days": last30, "remote_share": remote_share,
+        "seniority_mix": dict(Counter(j.get("seniority") for j in all_jobs if j.get("seniority")).most_common()),
+        "work_model_mix": dict(Counter(j.get("work_model") or "unspecified" for j in all_jobs).most_common()),
         "top_departments": [d for d, _ in depts.most_common(5)], "top_locations": [l for l, _ in locs.most_common(5)],
         "sample_matched_titles": [j["title"] for j in matched[:5]],
         "hiring_signal_score": int(vol + fresh + rel),

@@ -85,3 +85,43 @@ def test_bare_slug_picks_biggest_board():
 def test_unknown_returns_none():
     with _mock(lambda req: httpx.Response(404)) as c:
         assert resolve_and_fetch(c, parse_target("zzz-none"), False) is None
+
+
+def test_seniority_and_work_model():
+    from src.ats import seniority, work_model
+    cases = {"Software Engineer Intern": "intern", "Junior Designer": "entry", "Account Executive": "mid",
+             "Product Manager": "mid", "Senior Sales Engineer": "senior", "Sr. Backend Engineer": "senior",
+             "Staff Engineer": "lead", "Engineering Manager": "manager", "Head of Growth": "director",
+             "Associate Director, Finance": "director", "VP, Marketing": "executive", "CTO": "executive"}
+    for title, level in cases.items():
+        assert seniority(title) == level, title
+    assert seniority(None) is None
+    assert work_model("Remote", False) == "remote"
+    assert work_model("OnSite", False) == "onsite"
+    assert work_model(None, False, "London (Hybrid)") == "hybrid"
+    assert work_model(None, True, "Remote - US") == "remote"
+    assert work_model(None, False, "NYC") is None
+
+
+def test_filters_by_seniority_and_work_model():
+    from src.ats import _job
+    jobs = [_job(job_id="1", title="Senior Engineer", location="Remote"), _job(job_id="2", title="Engineering Intern", location="Berlin (Hybrid)")]
+    assert jobs[0]["work_model"] == "remote" and jobs[1]["seniority"] == "intern"
+    assert [j["job_id"] for j in filter_jobs(jobs, seniority_levels=["senior"], now=NOW)] == ["1"]
+    assert [j["job_id"] for j in filter_jobs(jobs, work_models=["hybrid"], now=NOW)] == ["2"]
+
+
+def test_monitor_reports_closed_jobs(monkeypatch):
+    import src.main as m
+    board = {"jobs": [{"id": "a", "title": "Eng", "isListed": True}, {"id": "b", "title": "PM", "isListed": True}]}
+    monkeypatch.setattr(m, "make_client", lambda: _mock(lambda req: httpx.Response(200, json=board)))
+    seen: dict = {}
+    inp = {"onlyNewSinceLastRun": True}
+    r1 = m._process_company("ashby:acme", inp, seen)
+    assert len(r1["jobs"]) == 2 and r1["summary"]["closed_jobs_since_last_run"] is None
+    board["jobs"] = [{"id": "b", "title": "PM", "isListed": True}, {"id": "c", "title": "Senior Designer", "isListed": True}]
+    r2 = m._process_company("ashby:acme", inp, seen)
+    s = r2["summary"]
+    assert [j["job_id"] for j in r2["jobs"]] == ["c"]
+    assert s["closed_jobs_since_last_run"] == 1 and s["closed_job_ids"] == ["a"] and s["net_change_since_last_run"] == 0
+    assert s["seniority_mix"] == {"mid": 1, "senior": 1}

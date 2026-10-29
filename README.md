@@ -24,11 +24,16 @@ Every row carries `match_confidence`. It is `exact` when you gave an ATS URL or 
 - **Job seekers and researchers.** Filter by keywords, location, remote, department and recency.
 
 ## Output
-**Job rows** (`type: "job"`): `company_name, title, department, team, location, country, remote, workplace_type, employment_type, posted_at, updated_at, url, apply_url, salary_min, salary_max, salary_currency, salary_text, description (optional), ats, company_slug, is_new`
+**Job rows** (`type: "job"`): `company_name, title, seniority, department, team, location, country, remote, workplace_type, work_model, employment_type, posted_at, updated_at, url, apply_url, salary_min, salary_max, salary_currency, salary_text, description (optional), ats, company_slug, is_new`
 
-**Company summary rows** (`type: "company_summary"`): `total_open_jobs, matched_jobs, new_jobs_since_last_run, posted_last_7_days, posted_last_30_days, remote_share, top_departments, top_locations, sample_matched_titles, hiring_signal_score (0-100), checked_at`
+**Company summary rows** (`type: "company_summary"`): `total_open_jobs, matched_jobs, new_jobs_since_last_run, closed_jobs_since_last_run, closed_job_ids, net_change_since_last_run, posted_last_7_days, posted_last_30_days, remote_share, seniority_mix, work_model_mix, top_departments, top_locations, sample_matched_titles, hiring_signal_score (0-100), checked_at`
 
 **Error rows** (`type: "error"`, never charged): an input where no public board was found.
+
+### Seniority and work model on every row
+- `seniority` is one of `intern, entry, mid, senior, lead, manager, director, executive`, inferred from the title with transparent rules (e.g. "Sr." → senior, "Staff/Principal/Architect" → lead, "Head of" → director, "VP/Chief" → executive). "Product/Account/Program/Project Manager" count as `mid` because they are usually not people managers. It's a rule, not AI, so it is fast, free and repeatable; check edge cases before relying on it.
+- `work_model` is `remote`, `hybrid`, `onsite`, or `null` when the board doesn't say. It comes from the ATS workplace flag (Lever, Ashby, SmartRecruiters) or the location text.
+- Filter with **Seniority levels** (e.g. `senior, lead, director`) and **Work model** (e.g. `remote, hybrid`). You pay only for rows that pass the filters.
 
 Example (real run, Oct 29 2026):
 ```json
@@ -37,7 +42,9 @@ Example (real run, Oct 29 2026):
 ```
 
 ## Monitor mode (only new jobs)
-Turn on **Only new jobs since last run** and schedule the Actor (daily or weekly). Job IDs are stored per company in the named key-value store `ats-hiring-signals-state` under your **Monitor state key**. Later runs output, and charge for, only jobs that weren't there before. New jobs cut by *Max jobs per company* are kept for the next run. Connect the dataset to Slack, Google Sheets, n8n, Make or Zapier through Apify integrations.
+Turn on **Only new jobs since last run** and schedule the Actor (daily or weekly). Job IDs are stored per company in the named key-value store `ats-hiring-signals-state` under your **Monitor state key**. Later runs output, and charge for, only jobs that weren't there before. New jobs cut by *Max jobs per company* are kept for the next run.
+
+From the second run on, each company summary also tells you what **closed**: `closed_jobs_since_last_run` (jobs that disappeared from the board since the previous run, i.e. filled or pulled), up to 50 `closed_job_ids`, and `net_change_since_last_run` (new minus closed). A board that is growing fast is a stronger buying signal than one that is just reposting. Closed counts are free (they live in the summary row) and are skipped when a board listing may be truncated (SmartRecruiters boards above 2,000 jobs). Connect the dataset to Slack, Google Sheets, n8n, Make or Zapier through Apify integrations.
 
 ## Hiring-signal score
 The score runs from 0 to 100 and adds three parts:
@@ -55,7 +62,7 @@ It is a ranking aid, not a prediction.
 You can set a max charge per run, and the Actor stops output cleanly when it is reached.
 
 ## Limits and notes
-- Only companies that use one of the 6 supported ATS are covered. Workday, iCIMS, Taleo and custom boards are not.
+- Only companies that use one of the 6 supported ATS are covered. Workday, iCIMS, Taleo and custom boards are not. For Workday career sites use our sister Actor [Workday Jobs & Hiring Signals](https://apify.com/goldenrod_serrano/workday-hiring-signals).
 - SmartRecruiters doesn't return descriptions in its list endpoint, so `description` stays empty there.
 - `posted_at` is the ATS's publish or first-published date. Greenhouse's `updated_at` changes on any edit.
 - Data belongs to the companies that published it. Respect each ATS's terms and applicable law when you reuse it.

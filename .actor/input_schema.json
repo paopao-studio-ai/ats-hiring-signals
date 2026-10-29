@@ -47,6 +47,18 @@
       "default": false,
       "description": "Keep only jobs marked remote (by the ATS flag or the location text)."
     },
+    "seniorityLevels": {
+      "title": "Seniority levels (any match)",
+      "type": "array",
+      "editor": "stringList",
+      "description": "Keep only these levels, inferred from the job title: intern, entry, mid, senior, lead, manager, director, executive. Empty = all. Every job row has a 'seniority' field either way."
+    },
+    "workModels": {
+      "title": "Work model (any match)",
+      "type": "array",
+      "editor": "stringList",
+      "description": "Keep only remote, hybrid and/or onsite jobs (normalized 'work_model' field from the ATS workplace flag or location text). Jobs whose board doesn't say are dropped when this is set."
+    },
     "postedWithinDays": {
       "title": "Posted within N days",
       "type": "integer",
@@ -57,7 +69,7 @@
       "title": "Only new jobs since last run (monitor mode)",
       "type": "boolean",
       "default": false,
-      "description": "Remembers job IDs per company in a named key-value store, so scheduled runs output (and charge) only newly opened jobs. First run outputs everything that matches."
+      "description": "Remembers job IDs per company in a named key-value store, so scheduled runs output (and charge) only newly opened jobs. First run outputs everything that matches. The company summary also reports closed_jobs_since_last_run (jobs that disappeared from the board) and net_change_since_last_run."
     },
     "stateKey": {
       "title": "Monitor state key",

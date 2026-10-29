@@ -41,13 +41,19 @@ def _process_company(raw: str, inp: dict, seen: dict) -> dict:
         jobs, keywords=kws, exclude=_list(inp.get("excludeKeywords")), locations=_list(inp.get("locations")),
         departments=_list(inp.get("departments")), remote_only=bool(inp.get("remoteOnly")),
         posted_within_days=inp.get("postedWithinDays") or None,
+        seniority_levels=_list(inp.get("seniorityLevels")), work_models=_list(inp.get("workModels")),
     )
     key = f"{ats}:{slug}".lower()
     new_ids = None
+    closed_ids = None
     if inp.get("onlyNewSinceLastRun"):
         prev = set(seen.get(key, []))
         cur = {j["job_id"] for j in jobs if j.get("job_id")}
         new_ids = {j["job_id"] for j in matched if j.get("job_id") not in prev} if key in seen else {j["job_id"] for j in matched}
+        # Jobs seen last run but gone now = closed/filled. Skipped when the board listing may be truncated.
+        truncated = ats == "smartrecruiters" and len(jobs) >= 2000
+        if key in seen and not truncated:
+            closed_ids = prev - cur
         matched = [j for j in matched if j.get("job_id") in new_ids]
     cap = inp.get("maxJobsPerCompany") or 0
     if cap:
@@ -67,7 +73,7 @@ def _process_company(raw: str, inp: dict, seen: dict) -> dict:
     confidence = "exact" if explicit else "guessed"
     for j in matched:
         j["match_confidence"] = confidence
-    summary = summarize(ats, slug, name, jobs, matched, new_ids)
+    summary = summarize(ats, slug, name, jobs, matched, new_ids, closed_ids=closed_ids)
     summary["match_confidence"] = confidence
     summary["input"] = raw
     return {"input": raw, "ats": ats, "slug": slug, "jobs": matched, "summary": summary}
