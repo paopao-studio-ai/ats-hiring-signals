@@ -1,0 +1,14 @@
+{
+  "actorSpecification": 1,
+  "name": "ats-hiring-signals",
+  "title": "ATS Jobs & Hiring Signals: Greenhouse, Lever, Ashby, Workable +2",
+  "description": "Pull every open job from Greenhouse, Lever, Ashby, Workable, SmartRecruiters and Recruitee boards by company slug or careers URL. Normalized fields, salary, new-since-last-run diff and a per-company hiring-signal score.",
+  "version": "1.0",
+  "buildTag": "latest",
+  "minMemoryMbytes": 128,
+  "maxMemoryMbytes": 1024,
+  "readme": "../README.md",
+  "input": "./input_schema.json",
+  "dockerfile": "../Dockerfile",
+  "storages": { "dataset": "./dataset_schema.json" }
+}

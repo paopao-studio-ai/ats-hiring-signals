@@ -1,0 +1,16 @@
+{
+  "actorSpecification": 1,
+  "fields": {},
+  "views": {
+    "jobs": {
+      "title": "Jobs",
+      "transformation": { "fields": ["type","company_name","title","department","location","remote","employment_type","posted_at","salary_text","url","ats","is_new"] },
+      "display": { "component": "table", "properties": { "url": { "format": "link" } } }
+    },
+    "signals": {
+      "title": "Company hiring signals",
+      "transformation": { "fields": ["type","company_name","ats","total_open_jobs","matched_jobs","new_jobs_since_last_run","posted_last_7_days","posted_last_30_days","remote_share","top_departments","hiring_signal_score"] },
+      "display": { "component": "table" }
+    }
+  }
+}

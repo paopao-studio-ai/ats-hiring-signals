@@ -1,0 +1,28 @@
+{
+  "title": "ATS Jobs & Hiring Signals",
+  "type": "object",
+  "schemaVersion": 1,
+  "properties": {
+    "companies": {
+      "title": "Companies",
+      "type": "array",
+      "editor": "stringList",
+      "description": "One per line. Any of: a careers/job-board URL (boards.greenhouse.io/stripe, jobs.lever.co/palantir, jobs.ashbyhq.com/ramp, apply.workable.com/x, jobs.smartrecruiters.com/x, x.recruitee.com), a company careers page that embeds one of those boards, 'ats:slug' (e.g. greenhouse:stripe), or a bare slug (auto-detected across all 6 ATS).",
+      "prefill": ["greenhouse:stripe", "https://jobs.lever.co/palantir", "https://jobs.ashbyhq.com/ramp"]
+    },
+    "keywords": { "title": "Keywords (any match)", "type": "array", "editor": "stringList", "description": "Keep jobs whose title/department (or description, if included) contains any of these. Case-insensitive. Empty = all jobs.", "prefill": ["engineer"] },
+    "excludeKeywords": { "title": "Exclude title keywords", "type": "array", "editor": "stringList", "description": "Drop jobs whose title contains any of these (e.g. intern, senior)." },
+    "locations": { "title": "Locations (any match)", "type": "array", "editor": "stringList", "description": "Substring match on location/country, e.g. 'London', 'US', 'Remote'." },
+    "departments": { "title": "Departments (any match)", "type": "array", "editor": "stringList", "description": "Substring match on department/team, e.g. 'Sales', 'Engineering'." },
+    "remoteOnly": { "title": "Remote only", "type": "boolean", "default": false, "description": "Keep only jobs marked remote (by the ATS flag or the location text)." },
+    "postedWithinDays": { "title": "Posted within N days", "type": "integer", "minimum": 0, "description": "Keep jobs first published in the last N days. 0/empty = no limit. (Workable/SmartRecruiters/Recruitee/Lever/Ashby give a publish date; Greenhouse gives first_published.)" },
+    "onlyNewSinceLastRun": { "title": "Only new jobs since last run (monitor mode)", "type": "boolean", "default": false, "description": "Remembers job IDs per company in a named key-value store, so scheduled runs output (and charge) only newly opened jobs. First run outputs everything that matches." },
+    "stateKey": { "title": "Monitor state key", "type": "string", "editor": "textfield", "default": "default", "description": "Use different keys to keep separate monitors (e.g. 'sales-roles', 'clients-q4')." },
+    "includeDescription": { "title": "Include job description text", "type": "boolean", "default": false, "description": "Adds plain-text descriptions (bigger output). Not available for SmartRecruiters." },
+    "outputJobs": { "title": "Output job rows", "type": "boolean", "default": true },
+    "outputCompanySummary": { "title": "Output company hiring-signal summary", "type": "boolean", "default": true, "description": "One row per company: open jobs, posted in last 7/30 days, remote share, top departments/locations and a 0-100 hiring-signal score. Great for sales prospecting." },
+    "maxJobsPerCompany": { "title": "Max jobs per company", "type": "integer", "minimum": 0, "default": 0, "description": "0 = no cap." },
+    "maxConcurrency": { "title": "Max concurrency", "type": "integer", "minimum": 1, "maximum": 20, "default": 5 }
+  },
+  "required": []
+}
