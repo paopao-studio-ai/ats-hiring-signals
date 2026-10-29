@@ -9,7 +9,7 @@
       "editor": "stringList",
       "description": "One per line. Any of: a careers/job-board URL (boards.greenhouse.io/stripe, jobs.lever.co/palantir, jobs.ashbyhq.com/ramp, apply.workable.com/x, jobs.smartrecruiters.com/x, x.recruitee.com), a company careers page that embeds one of those boards, 'ats:slug' (e.g. greenhouse:stripe), or a bare slug (auto-detected across all 6 ATS).",
       "prefill": [
-        "greenhouse:stripe",
+        "greenhouse:anthropic",
         "https://jobs.lever.co/palantir",
         "https://jobs.ashbyhq.com/ramp"
       ]
