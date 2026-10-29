@@ -1,0 +1,25 @@
+{
+    "actorOutputSchemaVersion": 1,
+    "title": "Output of ATS Jobs & Hiring Signals",
+    "description": "Normalized job postings (type=job), one hiring-signal summary per company (type=company_summary) and error rows (type=error) in the default dataset, plus a RUN_SUMMARY record in the default key-value store.",
+    "properties": {
+        "jobs": {
+            "type": "string",
+            "title": "Jobs",
+            "description": "Matched job postings from Greenhouse, Lever, Ashby, Workable, SmartRecruiters and Recruitee boards (dataset view 'jobs').",
+            "template": "{{links.apiDefaultDatasetUrl}}/items?view=jobs"
+        },
+        "hiringSignals": {
+            "type": "string",
+            "title": "Hiring signals",
+            "description": "One row per company: open jobs, new jobs since last run, jobs posted in the last 7/30 days, top departments and locations, and a 0-100 hiring signal score (dataset view 'signals').",
+            "template": "{{links.apiDefaultDatasetUrl}}/items?view=signals"
+        },
+        "runSummary": {
+            "type": "string",
+            "title": "Run summary",
+            "description": "JSON with counts of companies, boards found, jobs pushed and errors for this run.",
+            "template": "{{links.apiDefaultKeyValueStoreUrl}}/records/RUN_SUMMARY"
+        }
+    }
+}
