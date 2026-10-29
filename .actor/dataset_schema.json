@@ -8,6 +8,7 @@
         "fields": [
           "type",
           "company_name",
+          "ticker",
           "title",
           "seniority",
           "department",
@@ -38,6 +39,8 @@
         "fields": [
           "type",
           "company_name",
+          "ticker",
+          "cik",
           "ats",
           "total_open_jobs",
           "matched_jobs",

@@ -110,6 +110,20 @@
       "maximum": 20,
       "default": 5,
       "description": "How many companies to fetch in parallel."
+    },
+    "addTickers": {
+      "title": "Add stock ticker + SEC CIK (investors)",
+      "type": "boolean",
+      "default": true,
+      "description": "Adds ticker, cik and sec_title to each company summary (and ticker to each job) using SEC's public company_tickers.json. Conservative exact-name match: unmatched or ambiguous names stay null - no guessing. Free, no extra charge.",
+      "sectionCaption": "Investor fields"
+    },
+    "tickerMap": {
+      "title": "Your own company → ticker map",
+      "type": "object",
+      "editor": "json",
+      "prefill": {},
+      "description": "Optional. Overrides automatic matching, e.g. {\"amazon\": \"AMZN\", \"meta\": \"META\"}. Keys are the company name or slug as it appears in the output."
     }
   },
   "required": []

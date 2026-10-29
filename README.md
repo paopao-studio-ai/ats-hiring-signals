@@ -41,6 +41,17 @@ Example (real run, Oct 29 2026):
 {"type":"company_summary","company_name":"Stripe","ats":"greenhouse","total_open_jobs":724,"posted_last_30_days":235,"hiring_signal_score":92}
 ```
 
+## For investors and equity research (alternative data)
+
+Job postings are one of the most-used alternative datasets on the buy side: in Exabel's 2026 buy-side survey, 57% of fund managers named employment data as the category most likely to give an informational edge.
+This Actor gives you the raw, first-party version of that signal at pay-per-event prices:
+
+- **`ticker`, `cik`, `sec_title`** on every company summary (and `ticker` on every job), matched against SEC's public `company_tickers.json`. Matching is conservative: exact normalized name only; ambiguous or private companies stay `null`. Use `tickerMap` to set your own mapping.
+- **Monitor mode** gives new jobs, closed jobs and net change per run - schedule it daily to build your own point-in-time hiring series for a watchlist.
+- Typical uses: hiring momentum vs. peers before earnings, expansion into new countries (e.g. GCC hiring), AI/engineering hiring mix, hiring freezes (net change turning negative).
+
+Data comes only from employers' own public career sites. No personal data about candidates is collected. Not investment advice.
+
 ## Monitor mode (only new jobs)
 Turn on **Only new jobs since last run** and schedule the Actor (daily or weekly). Job IDs are stored per company in the named key-value store `ats-hiring-signals-state` under your **Monitor state key**. Later runs output, and charge for, only jobs that weren't there before. New jobs cut by *Max jobs per company* are kept for the next run.
 

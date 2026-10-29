@@ -14,6 +14,7 @@ from typing import Any
 from apify import Actor
 
 from .ats import filter_jobs, make_client, parse_target, resolve_and_fetch, summarize
+from .tickers import load_index, lookup, norm
 
 STATE_STORE = "ats-hiring-signals-state"
 SAMPLE = ["greenhouse:anthropic", "https://jobs.lever.co/palantir", "ashby:ramp"]
@@ -105,6 +106,18 @@ async def main() -> None:
 
         results = await asyncio.gather(*(run_one(r) for r in companies))
 
+        if inp.get("addTickers", True) and not sample:
+            idx = await asyncio.to_thread(load_index)
+            user_map = {norm(k): str(v).upper() for k, v in (inp.get("tickerMap") or {}).items() if v}
+            for r in results:
+                if "error" in r:
+                    continue
+                names = [r["summary"].get("company_name"), r["summary"].get("company_slug")]
+                hit = next(({"ticker": user_map[norm(n)], "cik": None, "sec_title": None, "ticker_match": "user"}
+                            for n in names if n and norm(n) in user_map), None) or lookup(idx, *names)
+                r["summary"].update(hit)
+                for j in r["jobs"]:
+                    j["ticker"] = hit["ticker"]
         want_jobs = inp.get("outputJobs", True)
         want_summary = inp.get("outputCompanySummary", True)
         totals = {"companies": len(companies), "found": 0, "jobs_pushed": 0, "errors": 0}
