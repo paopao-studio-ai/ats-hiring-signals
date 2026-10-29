@@ -13,6 +13,8 @@ Get **every open job** from a company's job board, plus a **hiring-signal summar
 
 You don't need to know the ATS. Paste a **bare slug** (`ramp`) and the Actor tries all six, keeping the board with the most open jobs. You can also paste a **company careers page** (`https://www.anthropic.com/careers`). The Actor finds the embedded board, and if the page is JS-rendered it falls back to the domain name.
 
+Every row carries `match_confidence`. It is `exact` when you gave an ATS URL or `ats:slug`, and `guessed` for a bare slug or domain fallback. A bare slug can collide with another company that has the same slug on a different ATS (for example `clay` or `gong`), so use `ats:slug` or the board URL for accounts that matter. Empty boards are ignored while guessing.
+
 **No login, no cookies, no proxies.** It reads only the public job-board endpoints that each ATS publishes so companies can show their jobs on their own sites. That makes runs fast (a few seconds for dozens of companies) and cheap.
 
 ## Who uses this

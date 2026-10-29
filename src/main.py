@@ -8,6 +8,7 @@ Charged events (pay per event):
 from __future__ import annotations
 
 import asyncio
+import re
 from typing import Any
 
 from apify import Actor
@@ -61,7 +62,13 @@ def _process_company(raw: str, inp: dict, seen: dict) -> dict:
         j["company_name"] = j.get("company_name") or name
         if new_ids is not None:
             j["is_new"] = True
+    explicit = bool(re.match(r"^(https?://)?[^/]*(greenhouse|lever|ashbyhq|workable|smartrecruiters|recruitee)", raw, re.I)
+                    or re.match(r"^(greenhouse|lever|ashby|workable|smartrecruiters|recruitee)\s*:", raw, re.I))
+    confidence = "exact" if explicit else "guessed"
+    for j in matched:
+        j["match_confidence"] = confidence
     summary = summarize(ats, slug, name, jobs, matched, new_ids)
+    summary["match_confidence"] = confidence
     summary["input"] = raw
     return {"input": raw, "ats": ats, "slug": slug, "jobs": matched, "summary": summary}
 

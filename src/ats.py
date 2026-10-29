@@ -318,7 +318,8 @@ def resolve_and_fetch(c: httpx.Client, t: Target, desc: bool) -> tuple[str, str,
             res = FETCHERS[ats](c, t.slug, desc)
         except (httpx.HTTPError, ValueError):
             continue
-        if res is not None and (best is None or len(res[1]) > len(best[3])):
+        # Some ATS (e.g. Workable) answer any slug with an empty board, so ignore empty ones here.
+        if res is not None and res[1] and (best is None or len(res[1]) > len(best[3])):
             best = (ats, t.slug, res[0], res[1])
     return best
 
