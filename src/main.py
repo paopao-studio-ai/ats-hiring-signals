@@ -101,7 +101,9 @@ def _process_company(raw: str, inp: dict, seen: dict, chg_prev: dict | None = No
     cap = inp.get("maxJobsPerCompany") or 0
     undelivered: list[str] = []
     if cap:
-        undelivered = [str(j.get("job_id")) for j in matched[cap:]] if track else []
+        # The cap only limits output. With change tracking every scanned job is recorded as seen (the full
+        # list), so capped-out rows are NOT re-reported (or re-charged) next run. Only rows lost to the
+        # platform's max-charge limit are rolled back (see main()).
         matched = matched[:cap]
     if new_ids is not None and not track:
         # New jobs dropped by the cap stay "unseen" so the next run still delivers them.

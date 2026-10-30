@@ -116,7 +116,7 @@ def diff_jobs(prev: dict | None, jobs: list[dict], fields: list[str], *, matched
 
 
 def finalize_jobs(next_jobs: dict, prev: dict | None, undelivered: Iterable[str]) -> dict:
-    """Rows we detected but could not deliver (per-company cap, max-charge limit) are rolled back so the
+    """Rows we detected but could not deliver because the max-charge limit stopped the run are rolled back so the
     next run reports them again."""
     pj = (prev or {}).get("jobs") or {}
     out = dict(next_jobs)
