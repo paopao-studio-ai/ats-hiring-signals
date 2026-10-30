@@ -17,6 +17,17 @@ Every row carries `match_confidence`. It is `exact` when you gave an ATS URL or 
 
 **No login, no cookies, no proxies.** It reads only the public job-board endpoints that each ATS publishes so companies can show their jobs on their own sites. That makes runs fast (a few seconds for dozens of companies) and cheap.
 
+## What's new: change tracking and signal scoring
+
+Two optional switches (both **off by default**):
+
+1. **Change tracking** (`changeTracking`) + **State key** (`stateKey`) — schedule the Actor and get only what changed since the last run with the same key: new jobs, changed fields (title, location, …) and free closed-job notices. First run is a baseline.
+2. **Signal scoring** (`signalScoring`) — adds an explainable 0–100 `signal_score`, a hot/warm/cool/cold tier and plain-English `score_reasons` on each company summary.
+
+**Baseline tip.** With change tracking on, *Max jobs per company* only limits how many rows a run outputs. Every scanned job is saved as seen, so capped-out jobs are **not** sent or charged on a later run. If you need every matching job as the baseline, set *Max jobs per company* to **0** (no limit) on the first run. Only rows stopped by your max charge per run are carried over.
+
+Details: [Change tracking](#change-tracking-new-changed-and-closed-jobs-optional) · [Signal score](#explainable-signal-score-optional).
+
 ## Who uses this
 - **Recruiters and staffing-agency BD (primary).** Watch 100–500 target companies without relying on slow LinkedIn alerts. Deduped rows, long-open / repost flags, and "JD names an internal recruiter" help you pick where to pitch. Attach `company_domain` for outreach sequences.
 - **Sales and lead generation.** A company that opens 10 sales roles this month has budget. Run a list of target accounts weekly and sort by `hiring_signal_score` or `posted_last_30_days`.

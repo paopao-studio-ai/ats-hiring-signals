@@ -72,14 +72,14 @@
       "description": "Remembers job IDs per company in a named key-value store, so scheduled runs output (and charge) only newly opened jobs. First run outputs everything that matches. The company summary also reports closed_jobs_since_last_run (jobs that disappeared from the board) and net_change_since_last_run."
     },
     "stateKey": {
-      "title": "Monitor state key",
+      "title": "State key (for change tracking / monitor)",
       "type": "string",
       "editor": "textfield",
       "default": "default",
-      "description": "Use different keys to keep separate monitors (e.g. 'sales-roles', 'clients-q4')."
+      "description": "Name for the saved state. Use different keys for separate watch lists (e.g. 'sales-roles', 'clients-q4'). Required for change tracking and for the older monitor mode."
     },
     "changeTracking": {
-      "title": "Change tracking: new / changed / closed jobs (monitor v2)",
+      "title": "Change tracking (new / changed / closed)",
       "type": "boolean",
       "default": false,
       "sectionCaption": "Change tracking & signal score",
@@ -87,7 +87,7 @@
       "description": "Keeps one small state record per company in the named key-value store and outputs only what changed since the last run with the same Monitor state key: change_type='new' (charged as a normal job row), change_type='changed' (a tracked field - title, location, department, team, work model, employment type and salary - changed; charged as a job row, with changed_fields and previous_values) and free type='job_closed' rows for jobs that disappeared. First run = baseline (everything matching is 'new'). If a listing could be truncated, no closures are reported and the old state is merged, never overwritten. Every scanned job is saved as seen: maxJobsPerCompany only limits output, and capped-out jobs are never sent or charged later. Only rows stopped by your max charge are carried to the next run. Replaces 'Only new jobs since last run' when both are on."
     },
     "signalScoring": {
-      "title": "Explainable company signal score (0-100)",
+      "title": "Signal score (0\u2013100 with reasons)",
       "type": "boolean",
       "default": false,
       "description": "Adds signal_score, signal_tier (hot/warm/cool/cold), score_reasons (one plain-English line per component, with points) and score_components to each company summary, and company_signal_score + score_reasons to each job row. Components: new demand 25, growth velocity 20 (real open-role trend when change tracking has history, else posting pace), seniority 15, department focus 15, hard-to-fill/long-open roles 10, volume 10, remote share 5. The legacy hiring_signal_score is unchanged."
@@ -141,7 +141,7 @@
       "type": "integer",
       "minimum": 0,
       "default": 0,
-      "description": "0 = no cap."
+      "description": "0 = no cap. With change tracking on, every scanned job is saved as seen: this cap only limits how many rows this run outputs. Jobs cut by the cap are not sent or charged later. For a full baseline (every matching job delivered once), set this to 0 on the first run."
     },
     "maxConcurrency": {
       "title": "Max concurrency",
@@ -159,7 +159,7 @@
       "sectionCaption": "Investor fields"
     },
     "tickerMap": {
-      "title": "Your own company → ticker map",
+      "title": "Your own company \u2192 ticker map",
       "type": "object",
       "editor": "json",
       "prefill": {},
