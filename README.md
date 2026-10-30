@@ -66,12 +66,44 @@ Turn on **Only new jobs since last run** and schedule the Actor (daily or weekly
 From the second run on, each company summary also tells you what **closed**: `closed_jobs_since_last_run` (jobs that disappeared from the board since the previous run, i.e. filled or pulled), up to 50 `closed_job_ids`, and `net_change_since_last_run` (new minus closed). A board that is growing fast is a stronger buying signal than one that is just reposting. Closed counts are free (they live in the summary row) and are skipped when a board listing may be truncated (SmartRecruiters boards above 2,000 jobs). Connect the dataset to Slack, Google Sheets, n8n, Make or Zapier through Apify integrations.
 
 ## Hiring-signal score
-The score runs from 0 to 100 and adds three parts:
+Every company summary has `hiring_signal_score` (0-100), which adds three parts:
 - volume (up to 40, from the number of open jobs)
 - freshness (up to 40, from jobs posted in the last 7 and 30 days)
 - relevance (up to 20, from jobs matching your filters)
 
 It is a ranking aid, not a prediction.
+
+## Change tracking: new, changed and closed jobs (optional)
+Turn on **Change tracking** (`changeTracking: true`) and schedule the Actor. The first run is a baseline: every matching job is output as `change_type: "new"`. Later runs output only:
+- **new** jobs (`change_type: "new"`, charged as a normal job row)
+- **changed** jobs (`change_type: "changed"`, charged as a job row). A job counts as changed when its title, location, department, team, work model, employment type or salary changed. `changed_fields` lists what changed and `previous_values` holds the old values.
+- **closed** jobs (`type: "job_closed"`, `change_type: "closed"`, **free**). These are jobs you got before that are gone from the board now.
+
+State is kept per company in the named key-value store `ats-hiring-signals-state` under your **Monitor state key**. If a scan is incomplete (a SmartRecruiters board above 2,000 jobs), the new results are merged into the saved state and nothing is reported as closed. Jobs that were not delivered (cut by *Max jobs per company* or by your max charge) stay "new" for the next run. The company summary adds `new_jobs_since_last_run`, `changed_jobs_since_last_run`, `closed_jobs_since_last_run`, `net_change_since_last_run`, `is_baseline_run` and `scan_complete`. This setting is off by default, and when it is on it replaces *Only new jobs since last run* for that run.
+
+## Explainable signal score (optional)
+Turn on **Signal scoring** (`signalScoring: true`) to add a company-level `signal_score` (0-100), a `signal_tier` (hot ≥70, warm ≥45, cool ≥20, cold) and `score_reasons` (one plain-English line per component) to each summary. Job rows get `job_function`, `company_signal_score`, `company_signal_tier` and `score_reasons`.
+
+| Component | Max | What it measures |
+|---|---|---|
+| new demand | 25 | roles posted in the last 30 / 7 days, plus "N new since the last run" when tracking |
+| velocity | 20 | growth of open roles once tracking spans 7+ days (before that, this week's posting pace vs the 30-day average) |
+| seniority | 15 | share of manager/director/executive and senior roles |
+| department | 15 | open roles in your `scoreFunctions` (sales, customer_success, marketing, data_ai, engineering, product_design, finance_legal, people_ops), or in the largest function |
+| hard to fill | 10 | share of roles open 30+ days |
+| volume | 10 | total open roles |
+| remote | 5 | share of remote roles |
+
+Example from a real run (Oct 30 2026, `greenhouse:anthropic`, `scoreFunctions: ["sales"]`, a later tracked run with no changes):
+```json
+{"type":"company_summary","total_open_jobs":669,"new_jobs_since_last_run":0,"closed_jobs_since_last_run":0,"signal_score":81,"signal_tier":"hot",
+ "score_reasons":["+25 new demand: 188 roles posted in the last 30 days (45 in the last 7); 0 new since the last run",
+  "+15 department: 123 open roles in target functions (sales)",
+  "+13 seniority: 126 manager/director/executive roles (19%), 48% senior-or-above",
+  "+10 hard-to-fill: 491 roles open 30+ days (73%)","+10 volume: 669 open roles",
+  "+7 velocity: 45 postings this week vs 43.7/week 30-day average (1.0x pace)","+1 remote: 9% of roles are remote"]}
+```
+A changed row looks like this: `{"type":"job","change_type":"changed","changed_fields":["title"],"previous_values":{"title":"..."},"first_seen_at":"2026-10-30T..."}`.
 
 ## Pricing (pay per event)
 - **$0.001 per job row** ($1 per 1,000 jobs)

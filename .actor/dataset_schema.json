@@ -29,7 +29,15 @@
           "company_domain",
           "names_internal_recruiter",
           "recruiter_contact",
-          "duplicate_count"
+          "duplicate_count",
+          "change_type",
+          "changed_fields",
+          "previous_values",
+          "first_seen_at",
+          "job_function",
+          "company_signal_score",
+          "company_signal_tier",
+          "score_reasons"
         ]
       },
       "display": {
@@ -65,11 +73,44 @@
           "company_domain",
           "long_open_jobs",
           "repost_jobs_in_output",
-          "jobs_naming_recruiter"
+          "jobs_naming_recruiter",
+          "signal_score",
+          "signal_tier",
+          "score_reasons",
+          "score_components",
+          "changed_jobs_since_last_run",
+          "is_baseline_run",
+          "scan_complete"
         ]
       },
       "display": {
         "component": "table"
+      }
+    },
+    "changes": {
+      "title": "Changes (change tracking)",
+      "transformation": {
+        "fields": [
+          "change_type",
+          "type",
+          "company_name",
+          "title",
+          "location",
+          "changed_fields",
+          "previous_values",
+          "first_seen_at",
+          "closed_detected_at",
+          "is_repost",
+          "url"
+        ]
+      },
+      "display": {
+        "component": "table",
+        "properties": {
+          "url": {
+            "format": "link"
+          }
+        }
       }
     }
   }

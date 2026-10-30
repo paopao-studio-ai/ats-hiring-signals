@@ -20,6 +20,12 @@
             "title": "Run summary",
             "description": "JSON with counts of companies, boards found, jobs pushed and errors for this run.",
             "template": "{{links.apiDefaultKeyValueStoreUrl}}/records/RUN_SUMMARY"
+        },
+        "changes": {
+            "type": "string",
+            "title": "Changes (new / changed / closed)",
+            "description": "With change tracking on: new and changed job rows plus free job_closed rows (dataset view 'changes').",
+            "template": "{{links.apiDefaultDatasetUrl}}/items?view=changes"
         }
     }
 }

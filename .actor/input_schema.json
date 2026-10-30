@@ -78,6 +78,26 @@
       "default": "default",
       "description": "Use different keys to keep separate monitors (e.g. 'sales-roles', 'clients-q4')."
     },
+    "changeTracking": {
+      "title": "Change tracking: new / changed / closed jobs (monitor v2)",
+      "type": "boolean",
+      "default": false,
+      "sectionCaption": "Change tracking & signal score",
+      "sectionDescription": "Optional. Off by default - existing runs behave exactly as before.",
+      "description": "Keeps one small state record per company in the named key-value store and outputs only what changed since the last run with the same Monitor state key: change_type='new' (charged as a normal job row), change_type='changed' (a tracked field - title, location, department, team, work model, employment type and salary - changed; charged as a job row, with changed_fields and previous_values) and free type='job_closed' rows for jobs that disappeared. First run = baseline (everything matching is 'new'). If a listing could be truncated, no closures are reported and the old state is merged, never overwritten. Rows not delivered because of maxJobsPerCompany or your max charge are kept for the next run. Replaces 'Only new jobs since last run' when both are on."
+    },
+    "signalScoring": {
+      "title": "Explainable company signal score (0-100)",
+      "type": "boolean",
+      "default": false,
+      "description": "Adds signal_score, signal_tier (hot/warm/cool/cold), score_reasons (one plain-English line per component, with points) and score_components to each company summary, and company_signal_score + score_reasons to each job row. Components: new demand 25, growth velocity 20 (real open-role trend when change tracking has history, else posting pace), seniority 15, department focus 15, hard-to-fill/long-open roles 10, volume 10, remote share 5. The legacy hiring_signal_score is unchanged."
+    },
+    "scoreFunctions": {
+      "title": "Score: target functions",
+      "type": "array",
+      "editor": "stringList",
+      "description": "Optional. Functions that matter to you for the 'department focus' part of the score: sales, customer_success, marketing, data_ai, engineering, product_design, finance_legal, people_ops. Empty = reward the company's biggest build-out."
+    },
     "includeDescription": {
       "title": "Include job description text",
       "type": "boolean",
