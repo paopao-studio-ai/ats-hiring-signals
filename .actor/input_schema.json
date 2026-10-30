@@ -84,6 +84,26 @@
       "default": false,
       "description": "Adds plain-text descriptions (bigger output). Not available for SmartRecruiters."
     },
+    "longOpenDays": {
+      "title": "Long-open threshold (days)",
+      "type": "integer",
+      "default": 30,
+      "minimum": 1,
+      "maximum": 365,
+      "description": "Mark is_long_open when the posting is at least this many days old. Long-open / reposted roles are the classic recruiter BD entry point (role hard to fill)."
+    },
+    "dedupeJobs": {
+      "title": "Merge duplicate jobs (same title+location+company)",
+      "type": "boolean",
+      "default": true,
+      "description": "Collapse rows that share a fingerprint within the run. The kept row gets duplicate_count and duplicate_urls. Turn off to keep every ATS id."
+    },
+    "companyDomainMap": {
+      "title": "Company domain map (optional)",
+      "type": "object",
+      "description": "Map company name or board slug to a website domain, e.g. {\"anthropic\":\"anthropic.com\"}. Used when the input is an ATS URL that does not reveal the company site. Never invented from the slug alone.",
+      "editor": "json"
+    },
     "outputJobs": {
       "title": "Output job rows",
       "type": "boolean",

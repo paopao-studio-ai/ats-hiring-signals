@@ -13,7 +13,8 @@ from typing import Any
 
 from apify import Actor
 
-from .ats import filter_jobs, make_client, parse_target, resolve_and_fetch, summarize
+from .ats import (apply_bd_fields, filter_jobs, job_fingerprint, make_client, merge_duplicate_jobs,
+                 parse_target, resolve_and_fetch, summarize)
 from .tickers import load_index, lookup, norm
 
 STATE_STORE = "ats-hiring-signals-state"
@@ -36,7 +37,16 @@ def _process_company(raw: str, inp: dict, seen: dict) -> dict:
         res = resolve_and_fetch(c, t, desc)
     if res is None:
         return {"input": raw, "error": "No public Greenhouse/Lever/Ashby/Workable/SmartRecruiters/Recruitee board found for this input."}
-    ats, slug, name, jobs = res
+    ats, slug, name, jobs, domain = res
+    # Optional user map wins over careers-URL domain; never invent from the slug alone.
+    domain_map = {str(k).lower(): str(v).lower().lstrip(".") for k, v in (inp.get("companyDomainMap") or {}).items() if v}
+    domain = domain_map.get((name or "").lower()) or domain_map.get(slug.lower()) or domain_map.get(raw.lower()) or domain
+    long_open_days = int(inp.get("longOpenDays") or 30)
+    key = f"{ats}:{slug}".lower()
+    # Fingerprint company identity: name/domain so the same role on Greenhouse+Lever (or slug+careers URL) merges.
+    fp_company = (name or domain or slug or key)
+    for j in jobs:
+        apply_bd_fields(j, fp_company, long_open_days=long_open_days, company_domain=domain)
     kws = _list(inp.get("keywords"))
     matched = filter_jobs(
         jobs, keywords=kws, exclude=_list(inp.get("excludeKeywords")), locations=_list(inp.get("locations")),
@@ -44,9 +54,10 @@ def _process_company(raw: str, inp: dict, seen: dict) -> dict:
         posted_within_days=inp.get("postedWithinDays") or None,
         seniority_levels=_list(inp.get("seniorityLevels")), work_models=_list(inp.get("workModels")),
     )
-    key = f"{ats}:{slug}".lower()
     new_ids = None
     closed_ids = None
+    fp_key = f"{key}::fp"
+    prev_fps: dict = seen.get(fp_key) or {}
     if inp.get("onlyNewSinceLastRun"):
         prev = set(seen.get(key, []))
         cur = {j["job_id"] for j in jobs if j.get("job_id")}
@@ -55,7 +66,11 @@ def _process_company(raw: str, inp: dict, seen: dict) -> dict:
         truncated = ats == "smartrecruiters" and len(jobs) >= 2000
         if key in seen and not truncated:
             closed_ids = prev - cur
+        closed_fps = {prev_fps[i] for i in (closed_ids or []) if i in prev_fps}
         matched = [j for j in matched if j.get("job_id") in new_ids]
+        for j in matched:
+            # Same title+location reappears under a new ATS id after vanishing = classic repost.
+            j["is_repost"] = bool(key in seen and j.get("fingerprint") in closed_fps)
     cap = inp.get("maxJobsPerCompany") or 0
     if cap:
         matched = matched[:cap]
@@ -63,12 +78,16 @@ def _process_company(raw: str, inp: dict, seen: dict) -> dict:
         # New jobs dropped by the cap stay "unseen" so the next run still delivers them.
         pushed = {j.get("job_id") for j in matched}
         seen[key] = sorted(cur - (new_ids - pushed))
+        seen[fp_key] = {j["job_id"]: j.get("fingerprint") or job_fingerprint(fp_company, j.get("title"), j.get("location"))
+                        for j in jobs if j.get("job_id") and j["job_id"] in set(seen[key])}
     for j in matched:
         j["type"] = "job"
         j["input"] = raw
         j["company_name"] = j.get("company_name") or name
         if new_ids is not None:
             j["is_new"] = True
+        elif "is_repost" not in j:
+            j["is_repost"] = None
     explicit = bool(re.match(r"^(https?://)?[^/]*(greenhouse|lever|ashbyhq|workable|smartrecruiters|recruitee)", raw, re.I)
                     or re.match(r"^(greenhouse|lever|ashby|workable|smartrecruiters|recruitee)\s*:", raw, re.I))
     confidence = "exact" if explicit else "guessed"
@@ -77,6 +96,7 @@ def _process_company(raw: str, inp: dict, seen: dict) -> dict:
     summary = summarize(ats, slug, name, jobs, matched, new_ids, closed_ids=closed_ids)
     summary["match_confidence"] = confidence
     summary["input"] = raw
+    summary["company_domain"] = domain
     return {"input": raw, "ats": ats, "slug": slug, "jobs": matched, "summary": summary}
 
 
@@ -105,6 +125,17 @@ async def main() -> None:
                     return {"input": raw, "error": f"{type(e).__name__}: {e}"[:300]}
 
         results = await asyncio.gather(*(run_one(r) for r in companies))
+
+        # Cross-company / cross-board dedupe: same fingerprint kept once (buyer pain: 1 role counted 11 times).
+        if inp.get("dedupeJobs", True):
+            flat = [j for r in results if "error" not in r for j in r["jobs"]]
+            merged = {j.get("fingerprint"): j for j in merge_duplicate_jobs(flat)}
+            for r in results:
+                if "error" in r:
+                    continue
+                r["jobs"] = [j for j in r["jobs"] if merged.get(j.get("fingerprint")) is j]
+                if r["jobs"] is not None and r.get("summary"):
+                    r["summary"]["matched_jobs"] = len(r["jobs"])
 
         if inp.get("addTickers", True) and not sample:
             idx = await asyncio.to_thread(load_index)

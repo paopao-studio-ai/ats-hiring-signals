@@ -21,7 +21,15 @@
           "url",
           "ats",
           "is_new",
-          "match_confidence"
+          "match_confidence",
+          "fingerprint",
+          "days_open",
+          "is_long_open",
+          "is_repost",
+          "company_domain",
+          "names_internal_recruiter",
+          "recruiter_contact",
+          "duplicate_count"
         ]
       },
       "display": {
@@ -53,7 +61,11 @@
           "seniority_mix",
           "top_departments",
           "hiring_signal_score",
-          "match_confidence"
+          "match_confidence",
+          "company_domain",
+          "long_open_jobs",
+          "repost_jobs_in_output",
+          "jobs_naming_recruiter"
         ]
       },
       "display": {

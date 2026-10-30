@@ -148,6 +148,147 @@ def work_model(workplace_type: Any, remote: bool, *texts: Any) -> str | None:
     return None
 
 
+
+# ---------------- BD signals: fingerprint, long-open, recruiter, domain ----------------
+# Evidence: r/RecruitmentAgencies BD flow (dupes across sites, reposts = best entry, JD names
+# internal recruiter); r/gtmengineering wants company + job + domain daily. Competitors
+# (bovi composite id, fantastic-jobs title+org+location dedupe, panda_studio/webdata_labs monitor)
+# cover monitor/dedupe; named-recruiter flag is rarer in public READMEs.
+
+ATS_HOST_RE = re.compile(
+    r"(?:^|\.)((?:job-boards|boards)(?:\.eu)?\.greenhouse\.io|boards-api\.greenhouse\.io|"
+    r"jobs\.(?:eu\.)?lever\.co|jobs\.ashbyhq\.com|apply\.workable\.com|"
+    r"(?:jobs|careers)\.smartrecruiters\.com|recruitee\.com)$",
+    re.I,
+)
+_PUBLIC_SUFFIX_2 = {"co.uk", "com.au", "co.jp", "com.sg", "com.hk", "co.in", "com.br", "co.nz", "com.mx", "co.kr", "com.tr"}
+_GENERIC_MAIL = re.compile(r"^(jobs?|careers?|apply|recruiting|talent|hr|hello|info|contact|noreply)@", re.I)
+# Require a Person-Name after the label so "hiring manager will discuss" does not fire.
+_RECRUITER_LABEL = re.compile(
+    r"(?i)(?:^|\n|[.;])\s*(?:recruiter|talent acquisition(?:\s+(?:partner|specialist|manager))?|"
+    r"ta partner|recruiting(?:\s+contact)?|sourcer)\s*[:\-–]\s*"
+    r"([A-Z][a-z]+(?:[ \t]+[A-Z][a-z]+){0,2})",
+)
+_CONTACT_NAME = re.compile(
+    r"(?i)(?:please\s+contact|reach\s+out\s+to|speak\s+(?:with|to)|email)\s+"
+    r"(?-i:([A-Z][a-z]{1,}(?:[ \t]+[A-Z][a-z]{1,}){0,2}))(?=\s+(?:at|via|on)\b|\s*<|\s*\()",
+)
+_BAD_CONTACT = re.compile(
+    r"^(?:us|me|him|her|them|our|the|a|an|hr|ta|team|recruiting|talent|careers|jobs|staff|someone|anyone)$",
+    re.I,
+)
+_MAILTO = re.compile(r"mailto:([a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,})", re.I)
+
+
+
+
+
+def registrable_domain(host: str | None) -> str | None:
+    if not host:
+        return None
+    host = host.lower().split(":")[0].strip(".")
+    if host.startswith("www."):
+        host = host[4:]
+    if not host or ATS_HOST_RE.search(host):
+        return None
+    parts = host.split(".")
+    if len(parts) < 2:
+        return None
+    last2 = ".".join(parts[-2:])
+    if last2 in _PUBLIC_SUFFIX_2 and len(parts) >= 3:
+        return ".".join(parts[-3:])
+    return last2
+
+
+def company_domain_from_url(url: str | None) -> str | None:
+    if not url:
+        return None
+    m = re.match(r"^https?://([^/]+)", url.strip(), re.I)
+    return registrable_domain(m.group(1) if m else None)
+
+
+def job_fingerprint(company_key: str | None, title: str | None, location: str | None) -> str:
+    """Stable key for cross-post / re-list detection. Lowercased title+location under a company."""
+    def norm_part(x: str | None) -> str:
+        t = re.sub(r"[^a-z0-9]+", " ", (x or "").lower())
+        return re.sub(r"\s+", " ", t).strip()
+    return "|".join([norm_part(company_key), norm_part(title), norm_part(location)])
+
+
+def days_open(posted_at: str | None, now: datetime | None = None) -> int | None:
+    if not posted_at:
+        return None
+    now = now or datetime.now(timezone.utc)
+    try:
+        d = datetime.fromisoformat(posted_at.replace("Z", "+00:00"))
+        if d.tzinfo is None:
+            d = d.replace(tzinfo=timezone.utc)
+        return max(0, (now - d).days)
+    except Exception:
+        return None
+
+
+def find_recruiter(description: str | None) -> dict:
+    """Detect whether the JD names an internal recruiter / TA contact.
+
+    Returns names_internal_recruiter (bool|None), recruiter_contact, recruiter_signal.
+    None when there is no description to inspect.
+    """
+    if description is None:
+        return {"names_internal_recruiter": None, "recruiter_contact": None, "recruiter_signal": None}
+    text = description.strip()
+    if not text:
+        return {"names_internal_recruiter": False, "recruiter_contact": None, "recruiter_signal": None}
+    m = _RECRUITER_LABEL.search(text)
+    if m and not _BAD_CONTACT.match(m.group(1).strip()):
+        return {"names_internal_recruiter": True, "recruiter_contact": m.group(1).strip(), "recruiter_signal": "labeled_name"}
+    m = _CONTACT_NAME.search(text)
+    if m and not _BAD_CONTACT.match(m.group(1).strip()):
+        return {"names_internal_recruiter": True, "recruiter_contact": m.group(1).strip(), "recruiter_signal": "contact_name"}
+    for em in _MAILTO.findall(text):
+        if not _GENERIC_MAIL.match(em):
+            return {"names_internal_recruiter": True, "recruiter_contact": em.lower(), "recruiter_signal": "mailto"}
+    # Plain email next to recruiter/talent words (no mailto:)
+    if re.search(r"\b(recruiter|talent acquisition|ta partner)\b.{0,60}[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}", text, re.I):
+        em = re.search(r"([a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,})", text, re.I)
+        if em and not _GENERIC_MAIL.match(em.group(1)):
+            return {"names_internal_recruiter": True, "recruiter_contact": em.group(1).lower(), "recruiter_signal": "email"}
+    return {"names_internal_recruiter": False, "recruiter_contact": None, "recruiter_signal": None}
+
+
+def apply_bd_fields(job: dict, company_key: str, *, long_open_days: int = 30, now: datetime | None = None,
+                    company_domain: str | None = None) -> dict:
+    now = now or datetime.now(timezone.utc)
+    fp = job_fingerprint(company_key, job.get("title"), job.get("location"))
+    age = days_open(job.get("posted_at"), now)
+    job["fingerprint"] = fp
+    job["days_open"] = age
+    job["is_long_open"] = (age is not None and age >= long_open_days)
+    job["company_domain"] = company_domain
+    job.update(find_recruiter(job.get("description")))
+    return job
+
+
+def merge_duplicate_jobs(jobs: list[dict]) -> list[dict]:
+    """Keep the first row per fingerprint; attach duplicate_urls / duplicate_count on the keeper."""
+    kept: dict[str, dict] = {}
+    order: list[str] = []
+    for j in jobs:
+        fp = j.get("fingerprint") or job_fingerprint(j.get("company_slug") or j.get("company_name"), j.get("title"), j.get("location"))
+        j["fingerprint"] = fp
+        if fp not in kept:
+            kept[fp] = j
+            j["duplicate_count"] = 0
+            j["duplicate_urls"] = []
+            order.append(fp)
+        else:
+            kept[fp]["duplicate_count"] += 1
+            url = j.get("url")
+            if url and url not in kept[fp]["duplicate_urls"] and url != kept[fp].get("url"):
+                kept[fp]["duplicate_urls"].append(url)
+    return [kept[fp] for fp in order]
+
+
 def _job(**kw: Any) -> dict[str, Any]:
     base = dict(
         ats=None, company_slug=None, company_name=None, job_id=None, title=None, department=None,
@@ -338,14 +479,21 @@ FETCHERS = {
 }
 
 
-def resolve_and_fetch(c: httpx.Client, t: Target, desc: bool) -> tuple[str, str, str, list[dict]] | None:
-    """Return (ats, slug, company_name, jobs) or None if not found."""
+def resolve_and_fetch(c: httpx.Client, t: Target, desc: bool) -> tuple[str, str, str, list[dict], str | None] | None:
+    """Return (ats, slug, company_name, jobs, company_domain) or None if not found.
+
+    company_domain comes from a non-ATS careers URL the user pasted (e.g. anthropic.com/careers),
+    never invented from the board slug.
+    """
+    domain = company_domain_from_url(t.careers_url)
     if t.ats is None and t.careers_url:
         try:
             r = c.get(t.careers_url, follow_redirects=True)
             found = detect_from_html(str(r.url)) or detect_from_html(r.text)
             if found:
                 t.ats, t.slug = found
+            # If the careers URL redirected through the company site, prefer that host.
+            domain = company_domain_from_url(str(r.url)) or domain
         except httpx.HTTPError:
             pass
         if t.ats is None:
@@ -358,7 +506,7 @@ def resolve_and_fetch(c: httpx.Client, t: Target, desc: bool) -> tuple[str, str,
                 return None
     if t.ats:
         res = FETCHERS[t.ats](c, t.slug, desc)
-        return (t.ats, t.slug, res[0], res[1]) if res is not None else None
+        return (t.ats, t.slug, res[0], res[1], domain) if res is not None else None
     # Bare slug: the same slug can exist on several ATS (often an old, near-empty board).
     # Try all six and keep the board with the most open jobs.
     best = None
@@ -369,7 +517,7 @@ def resolve_and_fetch(c: httpx.Client, t: Target, desc: bool) -> tuple[str, str,
             continue
         # Some ATS (e.g. Workable) answer any slug with an empty board, so ignore empty ones here.
         if res is not None and res[1] and (best is None or len(res[1]) > len(best[3])):
-            best = (ats, t.slug, res[0], res[1])
+            best = (ats, t.slug, res[0], res[1], domain)
     return best
 
 
@@ -434,13 +582,21 @@ def summarize(ats: str, slug: str, name: str, all_jobs: list[dict], matched: lis
     vol = min(40, total * 2 if total < 10 else 20 + min(20, total // 5))
     fresh = min(40, last30 * 2 + last7 * 3)
     rel = min(20, len(matched) * 4)
+    long_open_n = sum(1 for j in all_jobs if j.get("is_long_open"))
+    repost_n = sum(1 for j in matched if j.get("is_repost"))
+    named_n = sum(1 for j in matched if j.get("names_internal_recruiter") is True)
+    domain = next((j.get("company_domain") for j in (matched or all_jobs) if j.get("company_domain")), None)
     return {
         "type": "company_summary", "ats": ats, "company_slug": slug, "company_name": name,
+        "company_domain": domain,
         "total_open_jobs": total, "matched_jobs": len(matched),
         "new_jobs_since_last_run": (len(new_ids) if new_ids is not None else None),
         "closed_jobs_since_last_run": (len(closed_ids) if closed_ids is not None else None),
         "closed_job_ids": (sorted(closed_ids)[:50] if closed_ids is not None else None),
         "net_change_since_last_run": (len(new_ids) - len(closed_ids) if new_ids is not None and closed_ids is not None else None),
+        "long_open_jobs": long_open_n,
+        "repost_jobs_in_output": (repost_n if new_ids is not None else None),
+        "jobs_naming_recruiter": named_n if any(j.get("description") is not None for j in matched) else None,
         "posted_last_7_days": last7, "posted_last_30_days": last30, "remote_share": remote_share,
         "seniority_mix": dict(Counter(j.get("seniority") for j in all_jobs if j.get("seniority")).most_common()),
         "work_model_mix": dict(Counter(j.get("work_model") or "unspecified" for j in all_jobs).most_common()),

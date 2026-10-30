@@ -1,4 +1,4 @@
-# ATS Jobs & Hiring Signals: Greenhouse, Lever, Ashby, Workable, SmartRecruiters, Recruitee
+# ATS Jobs Monitor for Recruiter BD — Greenhouse, Lever, Ashby, Workable, SmartRecruiters, Recruitee
 
 Get **every open job** from a company's job board, plus a **hiring-signal summary**, in one run, across **6 applicant tracking systems**:
 
@@ -18,15 +18,15 @@ Every row carries `match_confidence`. It is `exact` when you gave an ATS URL or 
 **No login, no cookies, no proxies.** It reads only the public job-board endpoints that each ATS publishes so companies can show their jobs on their own sites. That makes runs fast (a few seconds for dozens of companies) and cheap.
 
 ## Who uses this
+- **Recruiters and staffing-agency BD (primary).** Watch 100–500 target companies without relying on slow LinkedIn alerts. Deduped rows, long-open / repost flags, and "JD names an internal recruiter" help you pick where to pitch. Attach `company_domain` for outreach sequences.
 - **Sales and lead generation.** A company that opens 10 sales roles this month has budget. Run a list of target accounts weekly and sort by `hiring_signal_score` or `posted_last_30_days`.
-- **Recruiters and staffing agencies.** Watch client and prospect boards in monitor mode and get only the roles that opened since the last run.
 - **Job boards and aggregators.** Normalized fields across 6 ATS, with salary where the ATS exposes it (Ashby and Lever often do).
 - **Job seekers and researchers.** Filter by keywords, location, remote, department and recency.
 
 ## Output
-**Job rows** (`type: "job"`): `company_name, title, seniority, department, team, location, country, remote, workplace_type, work_model, employment_type, posted_at, updated_at, url, apply_url, salary_min, salary_max, salary_currency, salary_text, description (optional), ats, company_slug, is_new`
+**Job rows** (`type: "job"`): `company_name, company_domain, title, seniority, department, team, location, country, remote, workplace_type, work_model, employment_type, posted_at, updated_at, days_open, is_long_open, is_repost, fingerprint, names_internal_recruiter, recruiter_contact, duplicate_count, duplicate_urls, url, apply_url, salary_*, description (optional), ats, company_slug, is_new`
 
-**Company summary rows** (`type: "company_summary"`): `total_open_jobs, matched_jobs, new_jobs_since_last_run, closed_jobs_since_last_run, closed_job_ids, net_change_since_last_run, posted_last_7_days, posted_last_30_days, remote_share, seniority_mix, work_model_mix, top_departments, top_locations, sample_matched_titles, hiring_signal_score (0-100), checked_at`
+**Company summary rows** (`type: "company_summary"`): `company_domain, total_open_jobs, matched_jobs, new_jobs_since_last_run, closed_jobs_since_last_run, closed_job_ids, net_change_since_last_run, long_open_jobs, repost_jobs_in_output, jobs_naming_recruiter, posted_last_7_days, posted_last_30_days, remote_share, seniority_mix, work_model_mix, top_departments, top_locations, sample_matched_titles, hiring_signal_score (0-100), checked_at`
 
 **Error rows** (`type: "error"`, never charged): an input where no public board was found.
 
@@ -40,6 +40,14 @@ Example (real run, Oct 29 2026):
 {"type":"job","company_name":"ramp","title":"Machine Learning Engineer","department":"Data","location":"New York, NY (HQ)","salary_text":"$200K – $330K • Offers Equity","ats":"ashby","url":"https://jobs.ashbyhq.com/ramp/..."}
 {"type":"company_summary","company_name":"Stripe","ats":"greenhouse","total_open_jobs":724,"posted_last_30_days":235,"hiring_signal_score":92}
 ```
+
+## Built for recruiter BD (what buyers asked for)
+Public demand from recruitment-agency BD threads (e.g. r/RecruitmentAgencies) and GTM engineers who want a daily company + job + domain feed (r/gtmengineering). Competitors already ship monitor mode (panda_studio, webdata_labs) and composite dedupe keys (bovi, fantastic-jobs). This Actor adds the BD-specific flags in one schema:
+
+1. **Cross-post dedupe.** Every row gets a `fingerprint` (normalized company + title + location). With *Merge duplicate jobs* on (default), the run keeps one row per fingerprint and sets `duplicate_count` / `duplicate_urls` on the keeper — so one role across several boards stops looking like eleven.
+2. **Long-open and repost flags.** `days_open` and `is_long_open` (default threshold 30 days, configurable). In monitor mode, a new ATS id whose fingerprint matches a role that just disappeared is marked `is_repost: true` — the classic "they've been trying to fill this" entry point for agencies.
+3. **JD names an internal recruiter.** When *Include description* is on, we look for labeled contacts (`Recruiter: Jane Doe`), "reach out to Name", or a non-generic mailto. Sets `names_internal_recruiter`, `recruiter_contact`, `recruiter_signal`. No description → fields stay `null` (we never guess). A named internal recruiter is a hint the company may already have TA coverage.
+4. **Company domain.** `company_domain` comes from a non-ATS careers URL you pasted (e.g. `https://www.anthropic.com/careers` → `anthropic.com`) or from `companyDomainMap`. We never invent `stripe.com` from the slug `stripe`.
 
 ## For investors and equity research (alternative data)
 
