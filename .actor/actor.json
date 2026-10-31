@@ -1,8 +1,8 @@
 {
   "actorSpecification": 1,
   "name": "ats-hiring-signals",
-  "title": "ATS Jobs Monitor \u2014 Change Tracking + Hiring Signal Score",
-  "description": "Watch Greenhouse, Lever, Ashby, Workable, SmartRecruiters and Recruitee. Optional change tracking (new / changed / closed jobs under a stateKey) and an explainable 0\u2013100 signal score. Dedupe, long-open and repost flags for recruiter BD. Caps only limit output \u2014 set Max jobs per company to 0 on the baseline run for a full baseline.",
+  "title": "Greenhouse, Lever & Ashby Jobs Scraper — Change Tracking + Hiring Signals",
+  "description": "Greenhouse jobs scraper and Lever jobs API in one: open jobs from Greenhouse, Lever, Ashby, Workable, SmartRecruiters and Recruitee by company slug or careers URL. Optional job change tracking (new / changed / closed) and a 0–100 hiring signal score for sales and recruiter BD. No login, no proxy.",
   "version": "1.0",
   "buildTag": "latest",
   "minMemoryMbytes": 128,

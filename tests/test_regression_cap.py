@@ -23,7 +23,7 @@ RUNNER = textwrap.dedent('''
 ''') % str(ROOT)
 
 
-PRICING = json.dumps({"pricingModel": "PAY_PER_EVENT", "pricingPerEvent": {"actorChargeEvents": {
+PRICING = json.dumps({"pricingModel": "PAY_PER_EVENT", "apifyMarginPercentage": 0.2, "createdAt": "2026-10-01T00:00:00Z", "startedAt": "2026-10-01T00:00:00Z", "pricingPerEvent": {"actorChargeEvents": {
     "apify-default-dataset-item": {"eventPriceUsd": 0, "eventTitle": "Dataset item"},
     "job": {"eventPriceUsd": 0.001, "eventTitle": "Job"},
     "company-summary": {"eventPriceUsd": 0.005, "eventTitle": "Company summary"}}}})

@@ -1,4 +1,6 @@
-# ATS Jobs Monitor for Recruiter BD — Greenhouse, Lever, Ashby, Workable, SmartRecruiters, Recruitee
+# Greenhouse, Lever & Ashby Jobs Scraper — Job Change Tracking + Hiring Signals
+
+ATS jobs monitor for sales and recruiter BD. Covers Greenhouse, Lever, Ashby, Workable, SmartRecruiters and Recruitee.
 
 Get **every open job** from a company's job board, plus a **hiring-signal summary**, in one run, across **6 applicant tracking systems**:
 
@@ -17,7 +19,7 @@ Every row carries `match_confidence`. It is `exact` when you gave an ATS URL or 
 
 **No login, no cookies, no proxies.** It reads only the public job-board endpoints that each ATS publishes so companies can show their jobs on their own sites. That makes runs fast (a few seconds for dozens of companies) and cheap.
 
-## What's new: change tracking and signal scoring
+## What's new: job change tracking and hiring signal scoring
 
 Two optional switches (both **off by default**):
 
@@ -28,13 +30,13 @@ Two optional switches (both **off by default**):
 
 Details: [Change tracking](#change-tracking-new-changed-and-closed-jobs-optional) · [Signal score](#explainable-signal-score-optional).
 
-## Who uses this
+## Who uses this Greenhouse / Lever jobs API
 - **Recruiters and staffing-agency BD (primary).** Watch 100–500 target companies without relying on slow LinkedIn alerts. Deduped rows, long-open / repost flags, and "JD names an internal recruiter" help you pick where to pitch. Attach `company_domain` for outreach sequences.
 - **Sales and lead generation.** A company that opens 10 sales roles this month has budget. Run a list of target accounts weekly and sort by `hiring_signal_score` or `posted_last_30_days`.
 - **Job boards and aggregators.** Normalized fields across 6 ATS, with salary where the ATS exposes it (Ashby and Lever often do).
 - **Job seekers and researchers.** Filter by keywords, location, remote, department and recency.
 
-## Output
+## Output: job rows and company hiring signals
 **Job rows** (`type: "job"`): `company_name, company_domain, title, seniority, department, team, location, country, remote, workplace_type, work_model, employment_type, posted_at, updated_at, days_open, is_long_open, is_repost, fingerprint, names_internal_recruiter, recruiter_contact, duplicate_count, duplicate_urls, url, apply_url, salary_*, description (optional), ats, company_slug, is_new`
 
 **Company summary rows** (`type: "company_summary"`): `company_domain, total_open_jobs, matched_jobs, new_jobs_since_last_run, closed_jobs_since_last_run, closed_job_ids, net_change_since_last_run, long_open_jobs, repost_jobs_in_output, jobs_naming_recruiter, posted_last_7_days, posted_last_30_days, remote_share, seniority_mix, work_model_mix, top_departments, top_locations, sample_matched_titles, hiring_signal_score (0-100), checked_at`
@@ -71,12 +73,12 @@ This Actor gives you the raw, first-party version of that signal at pay-per-even
 
 Data comes only from employers' own public career sites. No personal data about candidates is collected. Not investment advice.
 
-## Monitor mode (only new jobs)
+## Monitor mode: only new jobs since last run
 Turn on **Only new jobs since last run** and schedule the Actor (daily or weekly). Job IDs are stored per company in the named key-value store `ats-hiring-signals-state` under your **Monitor state key**. Later runs output, and charge for, only jobs that weren't there before. New jobs cut by *Max jobs per company* are kept for the next run.
 
 From the second run on, each company summary also tells you what **closed**: `closed_jobs_since_last_run` (jobs that disappeared from the board since the previous run, i.e. filled or pulled), up to 50 `closed_job_ids`, and `net_change_since_last_run` (new minus closed). A board that is growing fast is a stronger buying signal than one that is just reposting. Closed counts are free (they live in the summary row) and are skipped when a board listing may be truncated (SmartRecruiters boards above 2,000 jobs). Connect the dataset to Slack, Google Sheets, n8n, Make or Zapier through Apify integrations.
 
-## Hiring-signal score
+## Hiring-signal score (company summary)
 Every company summary has `hiring_signal_score` (0-100), which adds three parts:
 - volume (up to 40, from the number of open jobs)
 - freshness (up to 40, from jobs posted in the last 7 and 30 days)
