@@ -1,17 +1,17 @@
 {
-  "actorSpecification": 1,
-  "name": "ats-hiring-signals",
-  "title": "Greenhouse, Lever & Ashby Jobs Scraper — Change Tracking + Hiring Signals",
-  "description": "Greenhouse jobs scraper and Lever jobs API in one: open jobs from Greenhouse, Lever, Ashby, Workable, SmartRecruiters and Recruitee by company slug or careers URL. Optional job change tracking (new / changed / closed) and a 0–100 hiring signal score for sales and recruiter BD. No login, no proxy.",
-  "version": "1.0",
-  "buildTag": "latest",
-  "minMemoryMbytes": 128,
-  "maxMemoryMbytes": 1024,
-  "readme": "../README.md",
-  "input": "./input_schema.json",
-  "dockerfile": "../Dockerfile",
-  "storages": {
-    "dataset": "./dataset_schema.json"
-  },
-  "output": "./output_schema.json"
+    "actorSpecification": 1,
+    "name": "ats-hiring-signals",
+    "title": "Greenhouse, Lever & Ashby Jobs Scraper + Hiring Signals",
+    "description": "Greenhouse jobs scraper and Lever jobs API in one: open jobs from Greenhouse, Lever, Ashby, Workable, SmartRecruiters and Recruitee by company slug or careers URL. Optional job change tracking (new / changed / closed) and a 0–100 hiring signal score for sales and recruiter BD. No login, no proxy.",
+    "version": "1.0",
+    "buildTag": "latest",
+    "minMemoryMbytes": 128,
+    "maxMemoryMbytes": 1024,
+    "readme": "../README.md",
+    "input": "./input_schema.json",
+    "dockerfile": "../Dockerfile",
+    "storages": {
+        "dataset": "./dataset_schema.json"
+    },
+    "output": "./output_schema.json"
 }
