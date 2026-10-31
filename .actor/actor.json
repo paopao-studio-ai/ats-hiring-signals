@@ -13,5 +13,9 @@
     "storages": {
         "dataset": "./dataset_schema.json"
     },
-    "output": "./output_schema.json"
+    "output": "./output_schema.json",
+    "exampleRunInput": {
+        "body": "{\n  \"companies\": [\n    \"greenhouse:anthropic\",\n    \"https://jobs.lever.co/palantir\",\n    \"https://jobs.ashbyhq.com/ramp\"\n  ],\n  \"keywords\": [\n    \"engineer\"\n  ],\n  \"tickerMap\": {}\n}",
+        "contentType": "application/json; charset=utf-8"
+    }
 }

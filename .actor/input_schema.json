@@ -12,6 +12,11 @@
         "greenhouse:anthropic",
         "https://jobs.lever.co/palantir",
         "https://jobs.ashbyhq.com/ramp"
+      ],
+      "example": [
+        "greenhouse:anthropic",
+        "https://jobs.lever.co/palantir",
+        "https://jobs.ashbyhq.com/ramp"
       ]
     },
     "keywords": {
@@ -20,6 +25,9 @@
       "editor": "stringList",
       "description": "Keep jobs whose title/department (or description, if included) contains any of these. Case-insensitive. Empty = all jobs.",
       "prefill": [
+        "engineer"
+      ],
+      "example": [
         "engineer"
       ]
     },
@@ -87,7 +95,7 @@
       "description": "Keeps one small state record per company in the named key-value store and outputs only what changed since the last run with the same Monitor state key: change_type='new' (charged as a normal job row), change_type='changed' (a tracked field - title, location, department, team, work model, employment type and salary - changed; charged as a job row, with changed_fields and previous_values) and free type='job_closed' rows for jobs that disappeared. First run = baseline (everything matching is 'new'). If a listing could be truncated, no closures are reported and the old state is merged, never overwritten. Every scanned job is saved as seen: maxJobsPerCompany only limits output, and capped-out jobs are never sent or charged later. Only rows stopped by your max charge are carried to the next run. Replaces 'Only new jobs since last run' when both are on."
     },
     "signalScoring": {
-      "title": "Signal score (0\u2013100 with reasons)",
+      "title": "Signal score (0–100 with reasons)",
       "type": "boolean",
       "default": false,
       "description": "Adds signal_score, signal_tier (hot/warm/cool/cold), score_reasons (one plain-English line per component, with points) and score_components to each company summary, and company_signal_score + score_reasons to each job row. Components: new demand 25, growth velocity 20 (real open-role trend when change tracking has history, else posting pace), seniority 15, department focus 15, hard-to-fill/long-open roles 10, volume 10, remote share 5. The legacy hiring_signal_score is unchanged."
@@ -159,11 +167,12 @@
       "sectionCaption": "Investor fields"
     },
     "tickerMap": {
-      "title": "Your own company \u2192 ticker map",
+      "title": "Your own company → ticker map",
       "type": "object",
       "editor": "json",
       "prefill": {},
-      "description": "Optional. Overrides automatic matching, e.g. {\"amazon\": \"AMZN\", \"meta\": \"META\"}. Keys are the company name or slug as it appears in the output."
+      "description": "Optional. Overrides automatic matching, e.g. {\"amazon\": \"AMZN\", \"meta\": \"META\"}. Keys are the company name or slug as it appears in the output.",
+      "example": {}
     }
   },
   "required": []
