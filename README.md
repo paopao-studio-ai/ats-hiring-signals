@@ -131,5 +131,11 @@ You can set a max charge per run, and the Actor stops output cleanly when it is 
 - `posted_at` is the ATS's publish or first-published date. Greenhouse's `updated_at` changes on any edit.
 - Data belongs to the companies that published it. Respect each ATS's terms and applicable law when you reuse it.
 
+## Related Actors by PaoPao Studio
+- [Workday Jobs & Hiring Signals](https://apify.com/goldenrod_serrano/workday-hiring-signals) — same hiring signals for Workday career sites, with country filter.
+- [SEC Form D Scraper](https://apify.com/goldenrod_serrano/sec-form-d-funding-signals) — new private placements from SEC EDGAR Form D filings.
+- [SEC Comment Letter Scraper](https://apify.com/goldenrod_serrano/sec-comment-letters) — staff UPLOAD letters and company CORRESP replies by ticker, CIK or keyword.
+- [NCUA Credit Union Call Report Scraper](https://apify.com/goldenrod_serrano/ncua-call-report) — every US credit union's 5300 call report (net worth, growth, risk flags, exits).
+
 ## Support
 Report issues at https://github.com/paopao-studio-ai/ats-hiring-signals/issues · https://paopao-studio.pages.dev
