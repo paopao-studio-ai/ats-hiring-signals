@@ -1,6 +1,460 @@
 {
   "actorSpecification": 1,
-  "fields": {},
+  "fields": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "description": "Loose schema generated from real runs: every field is optional and may be null; extra fields are allowed.",
+    "properties": {
+      "apply_url": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "ats": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "change_type": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "changed_fields": {
+        "type": [
+          "array",
+          "null"
+        ]
+      },
+      "changed_jobs_since_last_run": {
+        "type": [
+          "number",
+          "null"
+        ]
+      },
+      "checked_at": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "cik": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "closed_detected_at": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "closed_job_ids": {
+        "type": [
+          "array",
+          "null"
+        ]
+      },
+      "closed_jobs_since_last_run": {
+        "type": [
+          "number",
+          "null"
+        ]
+      },
+      "company_domain": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "company_name": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "company_signal_score": {
+        "type": [
+          "number",
+          "null"
+        ]
+      },
+      "company_signal_tier": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "company_slug": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "country": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "days_open": {
+        "type": [
+          "number",
+          "null"
+        ]
+      },
+      "department": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "description": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "duplicate_count": {
+        "type": [
+          "number",
+          "null"
+        ]
+      },
+      "duplicate_urls": {
+        "type": [
+          "array",
+          "null"
+        ]
+      },
+      "employment_type": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "error": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "fingerprint": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "first_seen_at": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "function_mix": {
+        "type": [
+          "object",
+          "null"
+        ]
+      },
+      "hiring_signal_score": {
+        "type": [
+          "number",
+          "null"
+        ]
+      },
+      "input": {},
+      "is_baseline_run": {
+        "type": [
+          "boolean",
+          "null"
+        ]
+      },
+      "is_long_open": {
+        "type": [
+          "boolean",
+          "null"
+        ]
+      },
+      "is_new": {
+        "type": [
+          "boolean",
+          "null"
+        ]
+      },
+      "is_repost": {
+        "type": [
+          "boolean",
+          "null"
+        ]
+      },
+      "job_function": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "job_id": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "jobs_naming_recruiter": {
+        "type": [
+          "number",
+          "null"
+        ]
+      },
+      "location": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "long_open_jobs": {
+        "type": [
+          "number",
+          "null"
+        ]
+      },
+      "match_confidence": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "matched_jobs": {
+        "type": [
+          "number",
+          "null"
+        ]
+      },
+      "names_internal_recruiter": {
+        "type": [
+          "boolean",
+          "null"
+        ]
+      },
+      "net_change_since_last_run": {
+        "type": [
+          "number",
+          "null"
+        ]
+      },
+      "new_jobs_since_last_run": {
+        "type": [
+          "number",
+          "null"
+        ]
+      },
+      "posted_at": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "posted_last_30_days": {
+        "type": [
+          "number",
+          "null"
+        ]
+      },
+      "posted_last_7_days": {
+        "type": [
+          "number",
+          "null"
+        ]
+      },
+      "previous_values": {
+        "type": [
+          "object",
+          "null"
+        ]
+      },
+      "recruiter_contact": {},
+      "recruiter_signal": {},
+      "remote": {
+        "type": [
+          "boolean",
+          "null"
+        ]
+      },
+      "remote_share": {
+        "type": [
+          "number",
+          "null"
+        ]
+      },
+      "repost_jobs_in_output": {
+        "type": [
+          "number",
+          "null"
+        ]
+      },
+      "salary_currency": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "salary_max": {
+        "type": [
+          "number",
+          "null"
+        ]
+      },
+      "salary_min": {
+        "type": [
+          "number",
+          "null"
+        ]
+      },
+      "salary_text": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "sample_matched_titles": {
+        "type": [
+          "array",
+          "null"
+        ]
+      },
+      "scan_complete": {
+        "type": [
+          "boolean",
+          "null"
+        ]
+      },
+      "score_components": {
+        "type": [
+          "object",
+          "null"
+        ]
+      },
+      "score_reasons": {
+        "type": [
+          "array",
+          "null"
+        ]
+      },
+      "sec_title": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "seniority": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "seniority_mix": {
+        "type": [
+          "object",
+          "null"
+        ]
+      },
+      "signal_score": {
+        "type": [
+          "number",
+          "null"
+        ]
+      },
+      "signal_tier": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "team": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "ticker": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "ticker_match": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "title": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "top_departments": {
+        "type": [
+          "array",
+          "null"
+        ]
+      },
+      "top_locations": {
+        "type": [
+          "array",
+          "null"
+        ]
+      },
+      "total_open_jobs": {
+        "type": [
+          "number",
+          "null"
+        ]
+      },
+      "type": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "updated_at": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "url": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "work_model": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "work_model_mix": {
+        "type": [
+          "object",
+          "null"
+        ]
+      },
+      "workplace_type": {
+        "type": [
+          "string",
+          "null"
+        ]
+      }
+    },
+    "additionalProperties": true
+  },
   "views": {
     "jobs": {
       "title": "Jobs",
