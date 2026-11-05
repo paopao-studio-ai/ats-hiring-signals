@@ -13,6 +13,7 @@ from typing import Any
 
 from apify import Actor
 
+from .ppe_guard import check_charge_events
 from .ats import (apply_bd_fields, filter_jobs, job_fingerprint, make_client, merge_duplicate_jobs,
                  parse_target, resolve_and_fetch, summarize)
 from .signals import diff_jobs, finalize_jobs, job_function, next_record, score_company, state_key as chg_key
@@ -170,6 +171,7 @@ def _process_company(raw: str, inp: dict, seen: dict, chg_prev: dict | None = No
 
 async def main() -> None:
     async with Actor:
+        check_charge_events(["company-summary", "job"])  # loud WARNING if a PPE event would not be billed
         inp: dict[str, Any] = await Actor.get_input() or {}
         companies = _list(inp.get("companies"))
         sample = False
