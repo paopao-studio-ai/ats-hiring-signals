@@ -136,6 +136,7 @@ You can set a max charge per run, and the Actor stops output cleanly when it is 
 - [SEC Form D Scraper](https://apify.com/goldenrod_serrano/sec-form-d-funding-signals) — new private placements from SEC EDGAR Form D filings.
 - [SEC Comment Letter Scraper](https://apify.com/goldenrod_serrano/sec-comment-letters) — staff UPLOAD letters and company CORRESP replies by ticker, CIK or keyword.
 - [NCUA Credit Union Call Report Scraper](https://apify.com/goldenrod_serrano/ncua-call-report) — every US credit union's 5300 call report (net worth, growth, risk flags, exits).
+- [Shopify → QuickBooks Online Reconciliation](https://apify.com/goldenrod_serrano/shopify-qbo-reconciliation) — Shopify vs QuickBooks Online CSV discrepancy report for ecommerce finance/ops teams.
 
 ## Support
 Report issues at https://github.com/paopao-studio-ai/ats-hiring-signals/issues · https://paopao-studio.pages.dev
